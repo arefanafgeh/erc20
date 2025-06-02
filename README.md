@@ -647,12 +647,441 @@ IERC20(token).transferFrom(user, vault, 500e18);
 PHASE 2 – Write a minimal ERC-20 token from scratch (no OpenZeppelin)
 --------------------------------------
 
-## Question
---------------------------------------
---------------------------------------
+Excellent. You're now ready for:
+
+---
+
+# 🔹 **PHASE 2 – Write a Minimal ERC-20 Token From Scratch (No OpenZeppelin)**
+
+> ✅ Goal: You will write and fully understand a basic ERC-20 token from **zero**, without any external libraries. Every line will be explained.
+
+---
+
+## 📦 What We'll Build
+
+A simple ERC-20 token contract called `MyToken`, with:
+
+* Total supply
+* Basic transfer functionality
+* Balance tracking
+* Approvals and allowances
+
+---
+
+## 📘 Step-by-Step Plan:
+
+### ✅ 1. Define Contract & State Variables
+
+### ✅ 2. Write Constructor to Mint Supply
+
+### ✅ 3. Implement `balanceOf`, `totalSupply`, `transfer`
+
+### ✅ 4. Add `approve`, `allowance`, `transferFrom`
+
+### ✅ 5. Add Events
+
+### ✅ 6. Add Decimal Precision
+
+### ✅ 7. Full Review + Hands-on Challenge
+
+---
+
+## ✅ STEP 1 – Define the Contract
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract MyToken {
+    string public name = "MyToken";
+    string public symbol = "MTK";
+    uint8 public decimals = 18;
+
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+```
+
+### 🔍 Explanation:
+
+| Line                         | Purpose                                          |
+| ---------------------------- | ------------------------------------------------ |
+| `name`, `symbol`, `decimals` | Optional metadata – helps wallets show the token |
+| `totalSupply`                | Total tokens ever minted                         |
+| `balanceOf`                  | Track balances per user                          |
+| `allowance`                  | Allowances per `(owner => spender)` pair         |
+
+---
+
+## ✅ STEP 2 – Constructor Mints the Tokens
+
+```solidity
+    constructor(uint256 _initialSupply) {
+        totalSupply = _initialSupply;
+        balanceOf[msg.sender] = _initialSupply;
+    }
+```
+
+🔍 This mints the full supply to the contract deployer.
+
+Example:
+If `_initialSupply = 1_000_000 * 10 ** 18`, it mints 1 million tokens (18 decimals) to the deployer.
+
+---
+
+## ✅ STEP 3 – Implement Basic Transfers
+
+```solidity
+    event Transfer(address indexed from, address indexed to, uint256 value);
+
+    function transfer(address _to, uint256 _value) public returns (bool) {
+        require(balanceOf[msg.sender] >= _value, "Not enough balance");
+
+        balanceOf[msg.sender] -= _value;
+        balanceOf[_to] += _value;
+
+        emit Transfer(msg.sender, _to, _value);
+        return true;
+    }
+```
+
+### 🔍 Explanation:
+
+* Checks if sender has enough tokens
+* Subtracts from sender, adds to recipient
+* Emits a `Transfer` event
+
+---
+
+## ✅ STEP 4 – Approvals & Allowances
+
+```solidity
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    function approve(address _spender, uint256 _value) public returns (bool) {
+        allowance[msg.sender][_spender] = _value;
+
+        emit Approval(msg.sender, _spender, _value);
+        return true;
+    }
+```
+
+### 🔍 `approve()` lets another address (like a DEX) spend your tokens.
+
+---
+
+## ✅ STEP 5 – Implement `transferFrom`
+
+```solidity
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+        require(balanceOf[_from] >= _value, "Not enough balance");
+        require(allowance[_from][msg.sender] >= _value, "Allowance too low");
+
+        balanceOf[_from] -= _value;
+        balanceOf[_to] += _value;
+
+        allowance[_from][msg.sender] -= _value;
+
+        emit Transfer(_from, _to, _value);
+        return true;
+    }
+}
+```
+
+### 🔍 `transferFrom()`:
+
+* Used by spender to move tokens from `owner` → `recipient`
+* Requires both balance and allowance
+* Updates allowance after transfer
+
+---
+
+## ✅ 🧠 Final Full Contract
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract MyToken {
+    string public name = "MyToken";
+    string public symbol = "MTK";
+    uint8 public decimals = 18;
+
+    uint256 public totalSupply;
+
+    mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor(uint256 _initialSupply) {
+        totalSupply = _initialSupply;
+        balanceOf[msg.sender] = _initialSupply;
+    }
+
+    function transfer(address _to, uint256 _value) public returns (bool) {
+        require(balanceOf[msg.sender] >= _value, "Not enough balance");
+        balanceOf[msg.sender] -= _value;
+        balanceOf[_to] += _value;
+
+        emit Transfer(msg.sender, _to, _value);
+        return true;
+    }
+
+    function approve(address _spender, uint256 _value) public returns (bool) {
+        allowance[msg.sender][_spender] = _value;
+
+        emit Approval(msg.sender, _spender, _value);
+        return true;
+    }
+
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+        require(balanceOf[_from] >= _value, "Not enough balance");
+        require(allowance[_from][msg.sender] >= _value, "Allowance too low");
+
+        balanceOf[_from] -= _value;
+        balanceOf[_to] += _value;
+
+        allowance[_from][msg.sender] -= _value;
+
+        emit Transfer(_from, _to, _value);
+        return true;
+    }
+}
+```
+
+---
+
+## 🧪 PHASE 2 Hands-on Coding Challenge
+
+Try this:
+
+```solidity
+// 1. Deploy with: 1000000 * 10 ** 18
+// 2. Transfer some tokens to another address
+// 3. Approve a 3rd-party to spend tokens
+// 4. Call transferFrom() from the 3rd-party wallet
+```
+
+✅ You’ve now created your first fully working **ERC-20** without using **OpenZeppelin**!
+
+---
+
+## 🚀 Ready for PHASE 3?
+
+**PHASE 3: Security pitfalls in custom ERC-20 tokens**
+– Reentrancy
+– Overwriting allowances
+– Zero address checks
+– Front-running approve → transferFrom
+
+Let me know, and we’ll start it!
+
 
 ## Question
 --------------------------------------
+PHASE 3: Security pitfalls in custom ERC-20 tokens
+--------------------------------------
+
+Great — you're now at 🔐 **PHASE 3: Security Pitfalls in Custom ERC-20 Tokens**
+This is where **most beginners** (and even some intermediates) get **wrecked** when writing their own ERC-20s from scratch.
+
+---
+
+## ✅ What You’ll Learn in This Phase:
+
+| 🧠 Topic                     | 💥 Problem                                                     |
+| ---------------------------- | -------------------------------------------------------------- |
+| 1. Reentrancy in ERC-20      | Can ERC-20 be reentrant? When and how?                         |
+| 2. Overwriting allowances    | DApps get front-run or break if allowance is reset incorrectly |
+| 3. Zero address check        | Tokens can be "lost" or minted to burn addresses               |
+| 4. Front-running `approve()` | A classic attack to steal more than expected                   |
+
+Your goal:
+✅ **Spot** these bugs in minimal ERC-20 code
+✅ **Write secure code** to prevent them
+
+---
+
+## 🔐 1. **Reentrancy in ERC-20**
+
+### Can it happen?
+
+Normally, **ERC-20 doesn’t call external contracts**, so reentrancy is rare.
+
+### 🔥 But if you add external hooks, **it becomes possible.**
+
+### ❌ Dangerous Example:
+
+```solidity
+function transfer(address _to, uint256 _value) public returns (bool) {
+    require(balanceOf[msg.sender] >= _value);
+
+    balanceOf[msg.sender] -= _value;
+    balanceOf[_to] += _value;
+
+    // Unsafe: calling a contract address
+    IReceiver(_to).notify(_value); // ⚠️ External call
+
+    emit Transfer(msg.sender, _to, _value);
+    return true;
+}
+```
+
+### 🚨 What’s the Problem?
+
+If `_to` is a **malicious contract**, it can reenter this contract (especially if you have added future logic like minting or burning), and manipulate state.
+
+---
+
+### ✅ Safe Version
+
+```solidity
+function transfer(address _to, uint256 _value) public returns (bool) {
+    require(balanceOf[msg.sender] >= _value, "Insufficient");
+
+    balanceOf[msg.sender] -= _value;
+    balanceOf[_to] += _value;
+
+    emit Transfer(msg.sender, _to, _value);
+
+    // Safe: do external calls **after** state changes
+    if (isContract(_to)) {
+        IReceiver(_to).notify(_value);
+    }
+
+    return true;
+}
+```
+
+✅ **Rule**: **Change state first**, external calls last.
+
+---
+
+## 🔁 2. **Overwriting Allowances (Double-Spend Bug)**
+
+### ❌ Problem Code
+
+```solidity
+function approve(address _spender, uint256 _value) public returns (bool) {
+    allowance[msg.sender][_spender] = _value;
+    emit Approval(msg.sender, _spender, _value);
+    return true;
+}
+```
+
+### ⚠️ Exploit Scenario
+
+Let’s say:
+
+1. You approve DEX to spend `100` tokens.
+2. You want to change it to `50`, so you call `approve(50)`.
+3. But **before** the change, the DEX calls `transferFrom()` and drains `100`.
+
+**This is a classic front-run bug.**
+
+---
+
+### ✅ Safer Pattern: Reset-to-Zero
+
+Force allowance to be zero before changing it.
+
+```solidity
+function approve(address _spender, uint256 _value) public returns (bool) {
+    require(_value == 0 || allowance[msg.sender][_spender] == 0, "Reset first");
+    allowance[msg.sender][_spender] = _value;
+    emit Approval(msg.sender, _spender, _value);
+    return true;
+}
+```
+
+Many dApps now follow this pattern and wallets like Metamask often do `approve(0)` before setting a new amount.
+
+---
+
+## 🕳 3. **Zero Address Checks**
+
+### ❌ Buggy Code:
+
+```solidity
+function transfer(address _to, uint256 _value) public returns (bool) {
+    balanceOf[msg.sender] -= _value;
+    balanceOf[_to] += _value;
+    emit Transfer(msg.sender, _to, _value);
+    return true;
+}
+```
+
+### 🚨 Problem:
+
+If `_to == address(0)`, then you’ve just burned tokens permanently (but not intentionally).
+You can also **mint** to the zero address by mistake.
+
+---
+
+### ✅ Safe Version
+
+```solidity
+require(_to != address(0), "Cannot send to zero address");
+```
+
+Also apply it when **minting** and **approving**.
+
+---
+
+## ⚔️ 4. **Front-running approve → transferFrom**
+
+This is **closely related to point 2**, but here’s how it works:
+
+### 💥 Example Attack
+
+* Alice approves Bob to spend 100 tokens
+* Alice wants to reduce it to 20 tokens
+* She calls `approve(Bob, 20)`
+* Bob **front-runs** this tx and calls `transferFrom(Alice, Bob, 100)` before her tx hits the chain
+
+Alice loses 100 tokens — not 20
+
+---
+
+### ✅ Solution Options:
+
+1. Use `approve(0)` then `approve(newValue)`
+2. Use **ERC-2612 Permit** (off-chain signatures, no approve transaction)
+3. Add time locks or multi-sig for token approvals in sensitive systems
+
+---
+
+## ✅ Summary Cheat Sheet
+
+| Vulnerability          | Fix                                    |
+| ---------------------- | -------------------------------------- |
+| Reentrancy via hooks   | State change first, external call last |
+| Overwriting allowances | Force reset-to-zero before new approve |
+| Zero address           | Always check `_to != address(0)`       |
+| Approve front-running  | Use 0-reset or Permit                  |
+
+---
+
+## 🧪 Hands-On Challenge
+
+1. Add a `mint()` function to your custom ERC-20 — but **forget to check zero address**. What happens?
+2. Add an external callback to `transfer()` — then simulate a reentrancy in Remix.
+3. Try front-running `approve()` → `transferFrom()` using 2 browser wallets.
+
+---
+
+Ready to move to:
+**PHASE 4 – Advanced ERC-20 Patterns (Capped, Burnable, Pausable, Snapshot, Taxed, Reflection)**?
+
+Let’s go when you’re ready.
+
+
+## Question
+--------------------------------------
+PHASE 4 – Advanced ERC-20 Patterns (Capped, Burnable, Pausable, Snapshot, Taxed, Reflection)
 --------------------------------------
 
 ## Question
