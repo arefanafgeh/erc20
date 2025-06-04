@@ -1083,6 +1083,230 @@ Let’s go when you’re ready.
 --------------------------------------
 PHASE 4 – Advanced ERC-20 Patterns (Capped, Burnable, Pausable, Snapshot, Taxed, Reflection)
 --------------------------------------
+Awesome. Welcome to:
+
+---
+
+# 🧠 PHASE 4 — Advanced ERC-20 Patterns
+
+Here you’ll learn how to **extend ERC-20 tokens** with real-world features like:
+
+| Feature       | Use Case                              |
+| ------------- | ------------------------------------- |
+| 🔒 Capped     | Max supply (e.g., Bitcoin)            |
+| 🔥 Burnable   | Deflation (e.g., SHIB)                |
+| ⏸ Pausable    | Emergency stop                        |
+| 📸 Snapshot   | Governance, airdrops                  |
+| 💸 Taxed      | Tokenomics-based tokens               |
+| 🔁 Reflection | Auto-rewards holders (e.g., SafeMoon) |
+
+---
+
+### ✅ Goal:
+
+You’ll understand how to **write these by hand** (no OpenZeppelin), and what each is used for.
+
+Let’s go step-by-step:
+
+---
+
+## 🔹 1. **Capped ERC-20 Token**
+
+### 👇 Problem
+
+You want to **limit the total supply**, like 21 million BTC.
+
+### 🧪 Code:
+
+```solidity
+uint256 public cap = 21_000_000 * 1e18;
+uint256 public totalSupply;
+
+function mint(address to, uint256 amount) public {
+    require(totalSupply + amount <= cap, "Cap exceeded");
+    totalSupply += amount;
+    balanceOf[to] += amount;
+    emit Transfer(address(0), to, amount);
+}
+```
+
+### ✅ Tip:
+
+* Keep `cap` immutable if possible.
+* Always check `totalSupply + amount`.
+
+---
+
+## 🔥 2. **Burnable Token**
+
+### 👇 Goal:
+
+Allow users to **destroy their tokens**, reducing supply.
+
+### 🧪 Code:
+
+```solidity
+function burn(uint256 amount) public {
+    require(balanceOf[msg.sender] >= amount, "Insufficient");
+    balanceOf[msg.sender] -= amount;
+    totalSupply -= amount;
+    emit Transfer(msg.sender, address(0), amount);
+}
+```
+
+### ✅ Use Case:
+
+Deflationary tokens, buyback & burn models.
+
+---
+
+## ⏸ 3. **Pausable Token**
+
+### 👇 Goal:
+
+Allow admins to **pause transfers** during emergency or maintenance.
+
+### 🧪 Code:
+
+```solidity
+bool public paused = false;
+address public owner;
+
+modifier notPaused() {
+    require(!paused, "Paused");
+    _;
+}
+
+function pause() public {
+    require(msg.sender == owner);
+    paused = true;
+}
+
+function unpause() public {
+    require(msg.sender == owner);
+    paused = false;
+}
+
+function transfer(address to, uint256 amount) public notPaused returns (bool) {
+    // same logic
+}
+```
+
+✅ Tip: Use this for launch-phase tokens, multisig upgrades, or bridge downtime.
+
+---
+
+## 📸 4. **Snapshot Token**
+
+### 👇 Goal:
+
+Track balances at a **specific block** for voting, airdrops, rewards, etc.
+
+### 🧪 Concept Code:
+
+```solidity
+mapping(uint256 => mapping(address => uint256)) public snapshots;
+uint256 public currentSnapshotId;
+
+function snapshot() public returns (uint256) {
+    currentSnapshotId += 1;
+    return currentSnapshotId;
+}
+
+function transfer(address to, uint256 amount) public {
+    _updateSnapshot(msg.sender);
+    _updateSnapshot(to);
+
+    balanceOf[msg.sender] -= amount;
+    balanceOf[to] += amount;
+
+    emit Transfer(msg.sender, to, amount);
+}
+
+function _updateSnapshot(address user) internal {
+    snapshots[currentSnapshotId][user] = balanceOf[user];
+}
+```
+
+### ✅ Use Case:
+
+DAO voting, dividend systems, fair drops.
+
+---
+
+## 💸 5. **Taxed Token (Transfer Fee)**
+
+### 👇 Goal:
+
+Every transfer charges a **tax fee** (used for liquidity, burning, dev funds, etc.)
+
+### 🧪 Code:
+
+```solidity
+uint256 public taxPercent = 2;
+address public treasury;
+
+function transfer(address to, uint256 amount) public returns (bool) {
+    uint256 tax = (amount * taxPercent) / 100;
+    uint256 net = amount - tax;
+
+    balanceOf[msg.sender] -= amount;
+    balanceOf[to] += net;
+    balanceOf[treasury] += tax;
+
+    emit Transfer(msg.sender, to, net);
+    emit Transfer(msg.sender, treasury, tax);
+    return true;
+}
+```
+
+✅ Tip: Add anti-whale and max-tax logic to prevent abuse.
+
+---
+
+## 🔁 6. **Reflection Token (Auto-Rewards)**
+
+### 👇 Goal:
+
+Every transfer **rewards all holders** without looping.
+
+This is very complex and involves **scaling balances based on a global variable**.
+
+### ✅ High-level idea:
+
+* Track a `reflectionTotal` (internal balance pool)
+* Each user balance is a portion of that total
+* On transfer, subtract from sender, send less to recipient, and distribute the rest across everyone automatically
+
+### ❗ Not covered in full here due to complexity. I recommend a full breakdown in a separate lesson.
+
+---
+
+## 🔨 Challenge:
+
+1. Create a **Capped, Burnable Token**
+2. Add a `pause()` feature, and test transfer before/after pausing
+3. Implement a `snapshot()` and write a function to read balance at a snapshot
+4. Add `taxPercent` and test transfer logic with fee
+5. (Advanced) Try forking SafeMoon’s reflection logic and break it down
+
+---
+
+## ✅ Summary
+
+| Feature    | Adds...                    |
+| ---------- | -------------------------- |
+| Capped     | Supply limits              |
+| Burnable   | Deflation                  |
+| Pausable   | Safety                     |
+| Snapshot   | Governance / recordkeeping |
+| Taxed      | Tokenomics                 |
+| Reflection | Passive yield              |
+
+---
+
+Let me know which feature you want to **build hands-on** first, and I’ll walk you through it line by line.
+
 
 ## Question
 --------------------------------------

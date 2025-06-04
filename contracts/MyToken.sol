@@ -21,14 +21,16 @@ contract MyToken{
 
     function transfer(address _to , uint256 _value) public returns (bool){
         require(balances[msg.sender]>=_value , "You wanna steal?");
-
+        require(_to != address(0), "Cannot send to zero address");
         balances[msg.sender]-=_value;
         balances[_to] +=_value;
         emit Transfer(msg.sender, _to, _value);
         return true;
     }
+    
     function approve(address _spender , uint256 _value) public returns (bool){
         require(balances[msg.sender]>=_value , "You kidding me?");
+        require(_value == 0 || allowance[msg.sender][_spender] == 0, "Reset first");
         allowance[msg.sender][_spender]+=_value;
         emit Approval(msg.sender, _spender, _value);
         return true;
