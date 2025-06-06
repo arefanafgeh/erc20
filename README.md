@@ -877,7 +877,6 @@ Try this:
 – Zero address checks
 – Front-running approve → transferFrom
 
-Let me know, and we’ll start it!
 
 
 ## Question
@@ -1310,6 +1309,17 @@ Let me know which feature you want to **build hands-on** first, and I’ll walk 
 
 ## Question
 --------------------------------------
+what is snapshot even good for and how it works?
+--------------------------------------
+
+## Question
+--------------------------------------
+tell me about anti-whale and max-tax logic 
+--------------------------------------
+
+## Question
+--------------------------------------
+eplain Reflection Token (Auto-Rewards)
 --------------------------------------
 
 ## Question
@@ -1322,7 +1332,14 @@ Let me know which feature you want to **build hands-on** first, and I’ll walk 
 
 ## Question
 --------------------------------------
-Explaination of each function of the interface
+--------------------------------------
+
+## Question
+--------------------------------------
+--------------------------------------
+
+## Question
+--------------------------------------
 --------------------------------------
 
 ## Question
